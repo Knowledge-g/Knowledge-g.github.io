@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knowledge | المنصة التعليمية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@200;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00ff88; 
+            --primary-dim: rgba(0, 255, 136, 0.1);
+            --bg-dark: #09090b;
+            --surface: #18181b;
+            --surface-hover: #27272a;
+            --text-main: #ffffff;
+            --text-muted: #a1a1aa;
+            --danger: #ef4444;
+            --gradient: linear-gradient(135deg, #00ff88 0%, #00b894 100%);
+        }
+
+        * { box-sizing: border-box; font-family: 'Readex Pro', sans-serif; -webkit-tap-highlight-color: transparent; scroll-behavior: smooth; }
+        body { margin: 0; background: var(--bg-dark); color: var(--text-main); overflow-x: hidden; }
+
+        .view { display: none; opacity: 0; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform: translateY(10px); }
+        .view.active { display: block; opacity: 1; transform: translateY(0); }
+
+        #vLogin { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 1000; background: var(--bg-dark); }
+        .auth-container { width: 90%; max-width: 400px; background: var(--surface); padding: 40px; border-radius: 30px; position: relative; border: 1px solid #333; }
+        
+        input, select { width: 100%; padding: 16px; border-radius: 14px; background: var(--bg-dark); border: 1px solid #333; color: #fff; margin-bottom: 15px; outline: none; transition: 0.3s; font-size: 0.95rem; font-weight: 400; }
+        input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-dim); }
+        
+        .btn-main { background: var(--gradient); color: #000; border: none; padding: 16px; border-radius: 14px; font-weight: 800; cursor: pointer; width: 100%; font-size: 1rem; box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3); transition: 0.3s; }
+        .btn-main:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0, 255, 136, 0.5); }
+        .btn-main:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; padding: 20px 0; }
+
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(0, 255, 136, 0.4);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(0, 255, 136, 0.1);
+        }
+
+        .card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at center, var(--primary-dim) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            z-index: -1;
+        }
+        .card:hover::after { opacity: 1; }
+
+        .img-box { 
+            height: 200px; 
+            width: 100%; 
+            overflow: hidden; 
+            position: relative;
+        }
+        
+        .img-box img {
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover;
+            transition: transform 8s linear; 
+        }
+
+        .card:hover .img-box img {
+            transform: scale(1.15);
+        }
+
+        .info-box { 
+            padding: 20px; 
+            text-align: right; 
+            position: relative;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .card h3 { 
+            margin: 0; 
+            font-weight: 600; 
+            font-size: 1.1rem; 
+            color: var(--text-main); 
+            transition: color 0.3s ease;
+        }
+        
+        .card:hover h3 { color: var(--primary); }
+
+        .card-label { 
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.85rem; 
+            color: var(--text-muted); 
+            margin-top: 8px; 
+        }
+
+        .card-label::after {
+            content: '←';
+            opacity: 0;
+            transform: translateX(10px);
+            transition: all 0.3s ease;
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        .card:hover .card-label::after {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .success-overlay { display: none; position: absolute; inset: 0; background: var(--surface); border-radius: 30px; z-index: 10; flex-direction: column; align-items: center; justify-content: center; }
+        .success-checkmark { width: 80px; height: 80px; margin: 0 auto; }
+        .check-path { stroke-dasharray: 1000; stroke-dashoffset: 1000; animation: dash 1.5s ease-in-out forwards; stroke: var(--primary); }
+        @keyframes dash { to { stroke-dashoffset: 0; } }
+
+        #startScreen { position:fixed; inset:0; background:#000; z-index:999; display:flex; flex-direction:column; align-items:center; justify-content:center; overflow: hidden; }
+        .glow-bg { position: absolute; width: 300px; height: 300px; background: var(--primary); filter: blur(120px); opacity: 0.25; border-radius: 50%; z-index: -1; animation: pulse 4s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.2; } 50% { transform: scale(1.2); opacity: 0.35; } }
+
+        .admin-card { background: var(--surface); border: 1px solid #333; border-radius: 24px; padding: 25px; margin-bottom: 25px; transition: 0.3s; }
+        .code-display { font-weight: 200; font-size: 2rem; color: var(--primary); letter-spacing: 2px; }
+        nav { background: rgba(9, 9, 11, 0.85); backdrop-filter: blur(20px); padding: 15px 5%; position: sticky; top: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; }
+        
+        #videoModal { position: fixed; inset: 0; background: #000; z-index: 10000; display: none; flex-direction: column; }
+        #mainPlayer { flex: 1; border: none; background: #000; }
+    </style>
+</head>
+<body>
+
+    <div id="startScreen">
+        <div class="glow-bg"></div>
+        <h1 style="font-size: 3.5rem; margin-bottom: 20px; font-weight: 800; position: relative;">Knowledge</h1>
+        <button class="btn-main" style="width: 220px;" onclick="showLogin()">ابدأ التعلم الآن ←</button>
+    </div>
+
+    <div id="vLogin" class="view">
+        <div class="auth-container">
+            <div id="successAnim" class="success-overlay">
+                <svg class="success-checkmark" viewBox="0 0 52 52">
+                    <circle class="check-path" cx="26" cy="26" r="25" fill="none" stroke-width="2"/>
+                    <path class="check-path" fill="none" stroke-width="3" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                </svg>
+                <p style="margin-top:15px; font-weight:600;">تم التحقق بنجاح</p>
+            </div>
+            <h2 style="text-align: center; margin-bottom: 30px; font-weight: 800;">تسجيل الدخول</h2>
+            <input type="tel" id="regCode" placeholder="أدخل كود الطالب المكون من 9 أرقام" maxlength="9" style="text-align:center; letter-spacing: 2px;">
+            <button id="verifyBtn" class="btn-main" onclick="handleAuth()">تفعيل الحساب</button>
+            <p id="errorMsg" style="color:var(--danger); text-align:center; margin-top:15px; font-size: 0.9rem;"></p>
+        </div>
+    </div>
+
+    <div id="app" style="display:none;">
+        <nav>
+            <div class="logo" style="font-weight:800; font-size:1.6rem;">Knowledge<span style="color:var(--primary);">.</span></div>
+            <div style="display:flex; gap:12px;">
+                <button id="adminBtn" onclick="nav('vAdmin')" style="display:none; background:var(--primary-dim); color:var(--primary); border:1px solid var(--primary); padding:8px 16px; border-radius:12px; cursor:pointer; font-weight:600;">لوحة التحكم</button>
+                <div onclick="nav('vProfile')" style="background:var(--surface-hover); padding:10px 15px; border-radius:12px; cursor:pointer; border:1px solid #333;">👤</div>
+            </div>
+        </nav>
+
+        <div style="max-width: 1200px; margin: auto; padding: 25px;">
+            <div id="vHome" class="view">
+                <h2 style="font-weight:800; margin-bottom:10px;">المواد الدراسية</h2>
+                <div class="grid" id="subjectsGrid"></div>
+            </div>
+            <div id="vDyn" class="view">
+                <button onclick="goBack()" style="background:none; color:var(--text-muted); border:none; cursor:pointer; margin-bottom:20px; font-size:1rem;">← عودة</button>
+                <h2 id="dynTitle" style="font-weight:800;"></h2>
+                <div class="grid" id="dynGrid"></div>
+            </div>
+            <div id="vAdmin" class="view">
+                <div class="admin-card">
+                    <div style="color:var(--primary); margin-bottom:20px;"><h3>➕ إنشاء كود جديد</h3></div>
+                    <input type="text" id="admName" placeholder="اسم الطالب الثلاثي">
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                        <select id="admBranch">
+                            <option value="sci_med">علمي علوم</option>
+                            <option value="sci_math">علمي رياضة</option>
+                            <option value="lit">أدبي</option>
+                            <option value="azhar">أزهر</option>
+                        </select>
+                        <select id="admTime">
+                            <option value="hour">ساعة</option>
+                            <option value="week">أسبوع</option>
+                            <option value="month">شهر</option>
+                            <option value="year">سنة</option>
+                        </select>
+                    </div>
+                    <button class="btn-main" id="createBtn" onclick="genCode()">إنشاء وحفظ الكود</button>
+                    <div id="result" style="display:none; margin-top:20px;">
+                        <div style="background: #000; padding: 20px; border-radius: 15px; border: 1px dashed var(--primary); text-align: center; cursor: pointer;" onclick="copyCode()">
+                            <div id="val" class="code-display">000000000</div>
+                            <small style="color:var(--text-muted)">اضغط للنسخ</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="admin-card">
+                    <div style="color:var(--primary); margin-bottom:20px;"><h3>🔍 البحث وتعديل كود</h3></div>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="searchCodeInput" placeholder="أدخل الكود للبحث" style="margin-bottom:0;">
+                        <button class="btn-main" style="width:120px;" onclick="searchAndManageCode()">بحث</button>
+                    </div>
+                    <div id="editArea" style="display:none; margin-top:25px; padding-top:20px; border-top:1px solid #333;">
+                        <input type="text" id="editName" placeholder="الاسم">
+                        <select id="editBranch">
+                            <option value="sci_med">علمي علوم</option>
+                            <option value="sci_math">علمي رياضة</option>
+                            <option value="lit">أدبي</option>
+                            <option value="azhar">أزهر</option>
+                        </select>
+                        <input type="datetime-local" id="editExpiry" title="تاريخ الانتهاء">
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                            <button class="btn-main" onclick="updateCodeData()">حفظ التعديلات</button>
+                            <button class="btn-main" style="background:rgba(239,68,68,0.2); color:var(--danger); border:1px solid var(--danger); box-shadow:none;" onclick="deleteCodeData()">حذف الكود</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="vProfile" class="view">
+                <div style="background:var(--surface); padding:35px; border-radius:28px; max-width:500px; margin:auto; border:1px solid #333;">
+                    <h2 style="text-align:center; margin-bottom:30px; font-weight:800;">بيانات الحساب</h2>
+                    <div id="profileData"></div>
+                    <button id="logoutBtn" onclick="logout()" style="margin-top:30px; width:100%; padding:15px; background:rgba(239,68,68,0.1); color:var(--danger); border:1px solid var(--danger); border-radius:14px; cursor:pointer; font-weight:600; transition:0.3s;">تسجيل الخروج</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="videoModal">
+        <div style="padding:15px 25px; display:flex; justify-content:space-between; background:#111; align-items:center; border-bottom:1px solid #333;">
+            <span id="vTitle" style="font-weight:600;">مشغل الفيديو</span>
+            <button onclick="closeVideo()" style="color:#fff; background:var(--danger); border:none; padding:5px 15px; border-radius:8px; cursor:pointer;">إغلاق ×</button>
+        </div>
+        <iframe id="mainPlayer" allowfullscreen></iframe>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, query, where, updateDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCeZ-J7j0bLJYICnGzlLiO7yZFIFBlA_LI",
+            authDomain: "konwledge-codes.firebaseapp.com",
+            projectId: "konwledge-codes",
+            storageBucket: "konwledge-codes.firebasestorage.app",
+            messagingSenderId: "4734976430",
+            appId: "1:4734976430:web:7e65e2128deb7da662083f"
+        };
+
+        const fApp = initializeApp(firebaseConfig);
+        const db = getFirestore(fApp);
+
+        const BRANCH_RULES = {
+            'sci_med': { exclude: ['رياضيات', 'تاريخ', 'جغرافيا', 'إحصاء', 'الرياضيات', 'الاحصاء'] },
+            'sci_math': { exclude: ['أحياء', 'تاريخ', 'جغرافيا', 'إحصاء', 'الأحياء', 'الاحصاء'] },
+            'lit': { exclude: ['أحياء', 'رياضيات', 'كيمياء', 'فيزياء', 'الأحياء', 'الرياضيات', 'الكيمياء', 'الفيزياء'] },
+            'azhar': { exclude: ['عربي', 'تاريخ', 'جغرافيا', 'إحصاء', 'العربية', 'الاحصاء'] }
+        };
+
+        const SOURCES = {
+            "أدبي": "https://plus-teal.vercel.app/organized_output-a.json",
+            "الأساسي": "https://platform-sigma-seven.vercel.app/organized_output-e.json"
+        };
+
+        let currentEditingId = null;
+
+        window.nav = (id, pushState = true) => {
+            if(pushState) history.pushState({viewId: id}, "");
+            document.querySelectorAll('.view').forEach(v => { v.classList.remove('active'); v.style.display='none'; });
+            const target = document.getElementById(id);
+            if(target) {
+                if(id === 'vLogin') target.style.display = 'flex';
+                else target.style.display = 'block';
+                setTimeout(() => target.classList.add('active'), 50);
+                if(id === 'vProfile') renderProfile();
+            }
+        };
+
+        window.onpopstate = (event) => {
+            if (event.state && event.state.viewId) nav(event.state.viewId, false);
+            else nav('vHome', false);
+        };
+
+        window.showLogin = () => {
+            document.getElementById('startScreen').style.display = 'none';
+            nav('vLogin');
+        };
+
+        window.handleAuth = async () => {
+            const code = document.getElementById('regCode').value.trim();
+            const btn = document.getElementById('verifyBtn');
+            const err = document.getElementById('errorMsg');
+            if(code.length < 5) return err.innerText = "الكود غير صالح";
+            btn.disabled = true;
+            btn.innerText = "جاري فحص الكود...";
+            
+            if(code === "200855" || code === "2008517") {
+                showSuccessAndLogin({ studentName: "مدير المنصة", branch: "admin", type: "admin" });
+                return;
+            }
+            try {
+                const q = query(collection(db, "codes"), where("value", "==", code));
+                const snap = await getDocs(q);
+                if(snap.empty) throw new Error("عذراً، الكود غير صحيح");
+                const snapDoc = snap.docs[0];
+                const data = snapDoc.data();
+                const fingerprint = navigator.userAgent + screen.width;
+                if(data.isUsed && data.deviceId && data.deviceId !== fingerprint) throw new Error("هذا الكود مسجل على جهاز آخر");
+                if(data.expiry && Date.now() > data.expiry) throw new Error("عذراً، انتهت صلاحية الكود");
+                if(!data.isUsed) { await updateDoc(doc(db, "codes", snapDoc.id), { isUsed: true, deviceId: fingerprint, startDate: new Date().toISOString() }); }
+                showSuccessAndLogin({...data, code: code, id: snapDoc.id});
+            } catch(e) { err.innerText = e.message; btn.disabled = false; btn.innerText = "تفعيل الحساب"; }
+        };
+
+        function showSuccessAndLogin(user) {
+            document.getElementById('successAnim').style.display = 'flex';
+            setTimeout(() => {
+                localStorage.setItem('k_user', JSON.stringify(user));
+                document.getElementById('vLogin').style.display = 'none';
+                document.getElementById('app').style.display = 'block';
+                if(user.type === 'admin') document.getElementById('adminBtn').style.display = 'block';
+                else document.getElementById('adminBtn').style.display = 'none';
+                document.getElementById('regCode').value = "";
+                document.getElementById('successAnim').style.display = 'none';
+                document.getElementById('verifyBtn').disabled = false;
+                document.getElementById('verifyBtn').innerText = "تفعيل الحساب";
+                nav('vHome');
+                loadContent();
+            }, 1500);
+        }
+
+        window.logout = () => {
+            const btn = document.getElementById('logoutBtn');
+            btn.innerText = "جاري تسجيل الخروج...";
+            setTimeout(() => {
+                localStorage.clear();
+                document.getElementById('app').style.display = 'none';
+                document.getElementById('startScreen').style.display = 'flex';
+                btn.innerText = "تسجيل الخروج";
+                document.getElementById('subjectsGrid').innerHTML = "";
+                document.getElementById('dynGrid').innerHTML = "";
+            }, 800);
+        };
+
+        window.genCode = async () => {
+            const name = document.getElementById('admName').value.trim();
+            const branch = document.getElementById('admBranch').value;
+            const time = document.getElementById('admTime').value;
+            const btn = document.getElementById('createBtn');
+            if(!name) return alert("يرجى إدخال اسم الطالب");
+            btn.disabled = true;
+            btn.innerText = "جاري إنشاء الكود...";
+            const code = Math.floor(100000000 + Math.random() * 900000000).toString();
+            let expiry = Date.now();
+            if(time === 'hour') expiry += 3600000;
+            else if(time === 'week') expiry += 7 * 24 * 3600000;
+            else if(time === 'month') expiry += 30 * 24 * 3600000;
+            else if(time === 'year') expiry += 365 * 24 * 3600000;
+            try {
+                await addDoc(collection(db, "codes"), { value: code, studentName: name, branch: branch, expiry: expiry, isUsed: false, deviceId: null, type: 'student' });
+                document.getElementById('val').innerText = code;
+                document.getElementById('result').style.display = 'block';
+            } catch(e) { alert("خطأ في الاتصال بقاعدة البيانات"); }
+            btn.disabled = false;
+            btn.innerText = "إنشاء وحفظ الكود";
+        };
+
+        window.copyCode = () => { navigator.clipboard.writeText(document.getElementById('val').innerText); alert("تم نسخ الكود"); };
+
+        window.searchAndManageCode = async () => {
+            const code = document.getElementById('searchCodeInput').value.trim();
+            if(!code) return;
+            const q = query(collection(db, "codes"), where("value", "==", code));
+            const snap = await getDocs(q);
+            if(snap.empty) return alert("الكود غير موجود");
+            const data = snap.docs[0].data();
+            currentEditingId = snap.docs[0].id;
+            document.getElementById('editName').value = data.studentName;
+            document.getElementById('editBranch').value = data.branch;
+            if(data.expiry) {
+                const date = new Date(data.expiry);
+                date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+                document.getElementById('editExpiry').value = date.toISOString().slice(0,16);
+            }
+            document.getElementById('editArea').style.display = 'block';
+        };
+
+        window.updateCodeData = async () => {
+            if(!currentEditingId) return;
+            const name = document.getElementById('editName').value;
+            const branch = document.getElementById('editBranch').value;
+            const expiry = new Date(document.getElementById('editExpiry').value).getTime();
+            try { await updateDoc(doc(db, "codes", currentEditingId), { studentName: name, branch: branch, expiry: expiry }); alert("تم تحديث البيانات بنجاح"); document.getElementById('editArea').style.display = 'none'; } catch(e) { alert("حدث خطأ أثناء التحديث"); }
+        };
+
+        window.deleteCodeData = async () => {
+            if(!currentEditingId || !confirm("هل أنت متأكد من حذف هذا الكود نهائياً؟")) return;
+            try { await deleteDoc(doc(db, "codes", currentEditingId)); alert("تم حذف الكود"); document.getElementById('editArea').style.display = 'none'; } catch(e) { alert("حدث خطأ أثناء الحذف"); }
+        };
+
+        window.goBack = () => nav('vHome');
+
+        async function loadContent() {
+            const user = JSON.parse(localStorage.getItem('k_user'));
+            if(!user) return;
+            const grid = document.getElementById('subjectsGrid');
+            grid.innerHTML = '<p style="text-align:center; color:var(--primary);">جاري تحميل المحتوى...</p>';
+            try {
+                const fetchPromises = Object.values(SOURCES).map(url => fetch(url, { cache: "force-cache" }).then(r => r.json()));
+                const results = await Promise.all(fetchPromises);
+                let allSubjectsRaw = [];
+                results.forEach(d => d.forEach(m => { if(m.subjects) allSubjectsRaw.push(...m.subjects); }));
+                grid.innerHTML = "";
+                const rule = BRANCH_RULES[user.branch];
+                const renderedNames = new Set();
+                allSubjectsRaw.forEach(s => {
+                    if(renderedNames.has(s.name)) return;
+                    let allowed = true;
+                    if(user.branch !== 'admin' && rule) { if(rule.exclude.some(word => s.name.includes(word))) allowed = false; }
+                    if(allowed) {
+                        renderedNames.add(s.name);
+                        const card = document.createElement('div');
+                        card.className = 'card';
+                        card.innerHTML = `<div class="img-box"><img src="${s.image_url}" loading="lazy"></div><div class="info-box"><h3>${s.name}</h3><div class="card-label"><span>المدرسين: ${s.teachers.length}</span></div></div>`;
+                        card.onclick = () => renderTeachers(s);
+                        grid.appendChild(card);
+                    }
+                });
+            } catch(e) { grid.innerHTML = "فشل تحميل البيانات"; }
+        }
+
+        function renderTeachers(subject) {
+            const g = document.getElementById('dynGrid');
+            document.getElementById('dynTitle').innerText = subject.name;
+            g.innerHTML = "";
+            nav('vDyn');
+            subject.teachers.forEach(t => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `<div class="img-box"><img src="${t.image_url}" loading="lazy"></div><div class="info-box"><h3>أ/ ${t.name}</h3><div class="card-label"><span>الفصول: ${t.chapters.length}</span></div></div>`;
+                card.onclick = () => renderChapters(t);
+                g.appendChild(card);
+            });
+        }
+
+        function renderChapters(teacher) {
+            const g = document.getElementById('dynGrid');
+            g.innerHTML = "";
+            teacher.chapters.forEach(c => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                const chapterImg = (c.image_url && c.image_url !== "") ? c.image_url : teacher.image_url;
+                card.innerHTML = `<div class="img-box"><img src="${chapterImg}" loading="lazy"></div><div class="info-box"><h3>${c.name}</h3><div class="card-label"><span>المحاضرات: ${c.lectures.length}</span></div></div>`;
+                card.onclick = () => renderLectures(c, teacher.image_url);
+                g.appendChild(card);
+            });
+        }
+
+        function renderLectures(chapter, teacherImg) {
+            const g = document.getElementById('dynGrid');
+            g.innerHTML = "";
+            chapter.lectures.forEach(l => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                const lectureImg = (l.image_url && l.image_url !== "") ? l.image_url : (chapter.image_url && chapter.image_url !== "") ? chapter.image_url : teacherImg;
+                card.innerHTML = `<div class="img-box"><img src="${lectureImg}" loading="lazy"></div><div class="info-box"><h3>${l.name}</h3><div class="card-label"><span>عدد الفيديوهات: ${l.videos.length}</span></div></div>`;
+                card.onclick = () => renderVideos(l, lectureImg);
+                g.appendChild(card);
+            });
+        }
+
+        function renderVideos(lecture, lectureImg) {
+            const g = document.getElementById('dynGrid');
+            g.innerHTML = "";
+            lecture.videos.forEach(v => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `<div class="img-box"><img src="${lectureImg}" loading="lazy"></div><div class="info-box"><h3>${v.title}</h3><div class="card-label"><span style="color:var(--primary)">مشاهدة الآن</span></div></div>`;
+                card.onclick = () => openVideo(v.name, v.stream_url);
+                g.appendChild(card);
+            });
+        }
+
+        window.openVideo = (title, url) => { document.getElementById('vTitle').innerText = title; document.getElementById('mainPlayer').src = "https://hlsplayer.net/embed?type=mp4&src=" + encodeURIComponent(url); document.getElementById('videoModal').style.display = 'flex'; };
+        window.closeVideo = () => { document.getElementById('videoModal').style.display = 'none'; document.getElementById('mainPlayer').src = ""; };
+
+        function renderProfile() {
+            const u = JSON.parse(localStorage.getItem('k_user'));
+            if(!u) return;
+            const bMap = { 'sci_med':'علمي علوم', 'sci_math':'علمي رياضة', 'lit':'أدبي', 'azhar':'أزهر', 'admin':'إدارة' };
+            const container = document.getElementById('profileData');
+            const isExpired = u.expiry && Date.now() > u.expiry;
+            const items = [{ label: 'الاسم', value: u.studentName }, { label: 'الشعبة', value: bMap[u.branch] || u.branch }, { label: 'كود الطالب', value: u.code || 'Admin' }, { label: 'حالة الحساب', value: isExpired ? 'غير مفعل' : 'مفعل', color: isExpired ? 'var(--danger)' : 'var(--primary)' }, { label: 'تاريخ الاشتراك', value: u.startDate ? new Date(u.startDate).toLocaleDateString('ar-EG') : 'غير متوفر' }, { label: 'تاريخ الانتهاء', value: u.expiry ? new Date(u.expiry).toLocaleDateString('ar-EG') : 'غير محدود' }];
+            container.innerHTML = items.map(i => `<div style="display:flex; justify-content:space-between; padding:15px 0; border-bottom:1px solid #333;"><span style="color:var(--text-muted)">${i.label}</span><span style="font-weight:600; color:${i.color || 'white'}">${i.value}</span></div>`).join('');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = JSON.parse(localStorage.getItem('k_user'));
+            if(user) { document.getElementById('startScreen').style.display = 'none'; document.getElementById('app').style.display = 'block'; if(user.type === 'admin') document.getElementById('adminBtn').style.display = 'block'; nav('vHome'); loadContent(); }
+        });
+    </script>
+</body>
+</html>
