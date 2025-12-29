@@ -288,6 +288,20 @@
         const fApp = initializeApp(firebaseConfig);
         const db = getFirestore(fApp);
 
+        // --- نظام صور المواد المخصصة ---
+        const SUBJECT_CUSTOM_IMAGES = {
+            "لغة عربية": "https://img.freepik.com/free-photo/three-wise-men-celebration_23-2151042953.jpg?t=st=1767014652~exp=1767018252~hmac=635088155c842551584af83223d8ffaee5f79bbf461eb302045f640d6dbfbef4",
+            "English": "https://img.freepik.com/free-photo/illuminated-landmark-reflects-water-majestic-man-made-structure-generated-by-ai_188544-18578.jpg?t=st=1767015331~exp=1767018931~hmac=ee7e365e283571f1eb8b3a9081ec62ef7b55609a53df95e7af472cfeaae64a1f",
+            "فيزياء": "https://img.freepik.com/free-photo/fantasy-style-scene-international-day-education_23-2151040322.jpg?t=st=1767013959~exp=1767017559~hmac=de444b551795cfbd9f2f9f2282d75128ef6349b6b794ecd288537c7256624fdc",
+            "كيمياء": "https://img.freepik.com/free-photo/view-laboratory-equipment-neon-lights_23-2151807445.jpg?t=st=1767014132~exp=1767017732~hmac=b498e85d16b174b6a38a0dcaab2fd59f9cc1be50b4ed393cf8ca24b2324a99b1ا",
+            "الرياضيات": "https://img.freepik.com/free-photo/futuristic-scene-with-high-tech-robot-used-construction-industry_23-2151329507.jpg?t=st=1767014392~exp=1767017992~hmac=8973d4804f35cc26483e7f4611ac84bd0430517a93f7ad5033e5de0ea313fd14",
+            "Le français": "https://img.freepik.com/free-photo/monochrome-view-eiffel-tower-world-heritage-day_23-2151360210.jpg?t=st=1767015550~exp=1767019150~hmac=221be50c3e218b7824604c6ae442bfc1e16fa531d04d52f36d167ebe36fedb8a",
+            "أحياء": "https://img.freepik.com/free-photo/baby-fetus-womb_23-2151624573.jpg?t=st=1767014830~exp=1767018430~hmac=ea6b8bd9d234b215696d78e85ae2f1b88c95c4d9996afa18dba18de80ff61866",
+            "تاريخ": "https://img.freepik.com/free-photo/archaeological-cave-paintings_23-2151786677.jpg?t=st=1767014959~exp=1767018559~hmac=853e1b695967b8400d6960efcd9d268b5341c48b4b8bb43384261d549cb50954",
+            "جغرافيا": "https://img.freepik.com/free-photo/soldier-helmet-still-life_23-2151648787.jpg?t=st=1767015057~exp=1767018657~hmac=d087bd98d0301eb2e4f19b3940c9a1e24b3c3ce912acc600f6d1ee071d25a58c",
+            "الإحصاء": "https://img.freepik.com/free-photo/business-person-futuristic-business-environment_23-2150970195.jpg?t=st=1767015138~exp=1767018738~hmac=fa17c3de5bfc34e83f4632ed9f109ea1fc32764cc89635a47ce2db010eb791d3"
+        };
+
         const BRANCH_RULES = {
             'sci_med': { exclude: ['رياضيات', 'تاريخ', 'جغرافيا', 'إحصاء', 'الرياضيات', 'الاحصاء'] },
             'sci_math': { exclude: ['أحياء', 'تاريخ', 'جغرافيا', 'إحصاء', 'الأحياء', 'الاحصاء'] },
@@ -477,7 +491,8 @@
                         renderedNames.add(s.name);
                         const card = document.createElement('div');
                         card.className = 'card';
-                        card.innerHTML = `<div class="img-box"><img src="${s.image_url}" loading="lazy"></div><div class="info-box"><h3>${s.name}</h3><div class="card-label"><span>المدرسين: ${s.teachers.length}</span></div></div>`;
+                        const finalImg = SUBJECT_CUSTOM_IMAGES[s.name] || s.image_url;
+                        card.innerHTML = `<div class="img-box"><img src="${finalImg}" loading="lazy"></div><div class="info-box"><h3>${s.name}</h3><div class="card-label"><span>المدرسين: ${s.teachers.length}</span></div></div>`;
                         card.onclick = () => renderTeachers(s);
                         grid.appendChild(card);
                     }
