@@ -15,6 +15,7 @@
             --text-main: #ffffff;
             --text-muted: #a1a1aa;
             --danger: #ef4444;
+            --warning: #f59e0b;
             --gradient: linear-gradient(135deg, #00ff88 0%, #00b894 100%);
         }
 
@@ -143,6 +144,12 @@
         
         #videoModal { position: fixed; inset: 0; background: #000; z-index: 10000; display: none; flex-direction: column; }
         #mainPlayer { flex: 1; border: none; background: #000; }
+        
+        /* Admin specific styles */
+        .admin-section-title { color: var(--primary); margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .admin-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .admin-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
+        .status-badge { padding: 5px 10px; border-radius: 8px; font-size: 0.8rem; background: #333; color: #fff; }
     </style>
 </head>
 <body>
@@ -190,23 +197,23 @@
             </div>
             <div id="vAdmin" class="view">
                 <div class="admin-card">
-                    <div style="color:var(--primary); margin-bottom:20px;"><h3>➕ إنشاء كود جديد</h3></div>
-                    <input type="text" id="admName" placeholder="اسم الطالب الثلاثي">
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                        <select id="admBranch">
+                    <div class="admin-section-title"><h3>➕ إنشاء كود جديد</h3></div>
+                    <div class="admin-controls">
+                        <input type="text" id="admName" placeholder="اسم الطالب الثلاثي" style="margin:0">
+                        <select id="admBranch" style="margin:0">
                             <option value="sci_med">علمي علوم</option>
                             <option value="sci_math">علمي رياضة</option>
                             <option value="lit">أدبي</option>
                             <option value="azhar">أزهر</option>
                         </select>
-                        <select id="admTime">
+                        <select id="admTime" style="margin:0">
                             <option value="hour">ساعة</option>
                             <option value="week">أسبوع</option>
                             <option value="month">شهر</option>
                             <option value="year">سنة</option>
                         </select>
                     </div>
-                    <button class="btn-main" id="createBtn" onclick="genCode()">إنشاء وحفظ الكود</button>
+                    <button class="btn-main" id="createBtn" onclick="genCode()" style="margin-top:15px;">إنشاء وحفظ الكود</button>
                     <div id="result" style="display:none; margin-top:20px;">
                         <div style="background: #000; padding: 20px; border-radius: 15px; border: 1px dashed var(--primary); text-align: center; cursor: pointer;" onclick="copyCode()">
                             <div id="val" class="code-display">000000000</div>
@@ -214,25 +221,36 @@
                         </div>
                     </div>
                 </div>
+
                 <div class="admin-card">
-                    <div style="color:var(--primary); margin-bottom:20px;"><h3>🔍 البحث وتعديل كود</h3></div>
-                    <div style="display:flex; gap:10px;">
-                        <input type="text" id="searchCodeInput" placeholder="أدخل الكود للبحث" style="margin-bottom:0;">
-                        <button class="btn-main" style="width:120px;" onclick="searchAndManageCode()">بحث</button>
+                    <div class="admin-section-title"><h3>🔍 إدارة الأكواد</h3></div>
+                    <div style="display:flex; gap:10px; margin-bottom: 20px;">
+                        <input type="text" id="searchCodeInput" placeholder="ابحث بالكود (9 أرقام)" style="margin-bottom:0; font-letter-spacing:2px; text-align:center;">
+                        <button class="btn-main" style="width:100px;" onclick="searchAndManageCode()">بحث</button>
                     </div>
-                    <div id="editArea" style="display:none; margin-top:25px; padding-top:20px; border-top:1px solid #333;">
-                        <input type="text" id="editName" placeholder="الاسم">
-                        <select id="editBranch">
-                            <option value="sci_med">علمي علوم</option>
-                            <option value="sci_math">علمي رياضة</option>
-                            <option value="lit">أدبي</option>
-                            <option value="azhar">أزهر</option>
-                        </select>
-                        <input type="datetime-local" id="editExpiry" title="تاريخ الانتهاء">
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                            <button class="btn-main" onclick="updateCodeData()">حفظ التعديلات</button>
-                            <button class="btn-main" style="background:rgba(239,68,68,0.2); color:var(--danger); border:1px solid var(--danger); box-shadow:none;" onclick="deleteCodeData()">حذف الكود</button>
+                    
+                    <div id="editArea" style="display:none; padding-top:20px; border-top:1px solid #333;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                            <h4 style="margin:0;">بيانات الطالب</h4>
+                            <span id="deviceStatus" class="status-badge"></span>
                         </div>
+                        
+                        <div class="admin-controls">
+                            <input type="text" id="editName" placeholder="الاسم" style="margin:0">
+                            <select id="editBranch" style="margin:0">
+                                <option value="sci_med">علمي علوم</option>
+                                <option value="sci_math">علمي رياضة</option>
+                                <option value="lit">أدبي</option>
+                                <option value="azhar">أزهر</option>
+                            </select>
+                            <input type="datetime-local" id="editExpiry" title="تاريخ الانتهاء" style="margin:0">
+                        </div>
+
+                        <div class="admin-actions">
+                            <button class="btn-main" onclick="updateCodeData()">💾 حفظ التعديلات</button>
+                            <button class="btn-main" style="background:rgba(245, 158, 11, 0.15); color:var(--warning); border:1px solid var(--warning); box-shadow:none;" onclick="resetDeviceID()">🔓 فك ربط الجهاز</button>
+                        </div>
+                        <button class="btn-main" style="background:rgba(239,68,68,0.15); color:var(--danger); border:1px solid var(--danger); box-shadow:none; margin-top:15px;" onclick="deleteCodeData()">🗑️ حذف الكود نهائياً</button>
                     </div>
                 </div>
             </div>
@@ -274,12 +292,13 @@
             'sci_med': { exclude: ['رياضيات', 'تاريخ', 'جغرافيا', 'إحصاء', 'الرياضيات', 'الاحصاء'] },
             'sci_math': { exclude: ['أحياء', 'تاريخ', 'جغرافيا', 'إحصاء', 'الأحياء', 'الاحصاء'] },
             'lit': { exclude: ['أحياء', 'رياضيات', 'كيمياء', 'فيزياء', 'الأحياء', 'الرياضيات', 'الكيمياء', 'الفيزياء'] },
-            'azhar': { exclude: ['عربي', 'تاريخ', 'جغرافيا', 'إحصاء', 'العربية', 'الاحصاء'] }
+            'azhar': { exclude: ['عربي', 'تاريخ', 'جغرافيا', 'إحصاء', 'العربية', 'الاحصاء' , 'Le français'] }
         };
 
         const SOURCES = {
-            "أدبي": "https://plus-teal.vercel.app/organized_output-a.json",
-            "الأساسي": "https://platform-sigma-seven.vercel.app/organized_output-e.json"
+            "الأساسي": "https://platform-sigma-seven.vercel.app/organized_output-e.json",
+            "علوم": "https://plus-teal.vercel.app/organized_output.json",
+            "أدبي": "https://plus-teal.vercel.app/organized_output-a.json"
         };
 
         let currentEditingId = null;
@@ -397,6 +416,12 @@
             currentEditingId = snap.docs[0].id;
             document.getElementById('editName').value = data.studentName;
             document.getElementById('editBranch').value = data.branch;
+            
+            // UI Status Update
+            const statusEl = document.getElementById('deviceStatus');
+            if(data.deviceId) { statusEl.innerText = "جهاز مرتبط 📱"; statusEl.style.color = "var(--primary)"; }
+            else { statusEl.innerText = "غير مرتبط بجهاز ⚪"; statusEl.style.color = "var(--text-muted)"; }
+
             if(data.expiry) {
                 const date = new Date(data.expiry);
                 date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
@@ -411,6 +436,17 @@
             const branch = document.getElementById('editBranch').value;
             const expiry = new Date(document.getElementById('editExpiry').value).getTime();
             try { await updateDoc(doc(db, "codes", currentEditingId), { studentName: name, branch: branch, expiry: expiry }); alert("تم تحديث البيانات بنجاح"); document.getElementById('editArea').style.display = 'none'; } catch(e) { alert("حدث خطأ أثناء التحديث"); }
+        };
+
+        window.resetDeviceID = async () => {
+            if(!currentEditingId) return;
+            if(!confirm("هل أنت متأكد من فك ربط الجهاز؟ سيتمكن الطالب من الدخول من جهاز جديد.")) return;
+            try { 
+                await updateDoc(doc(db, "codes", currentEditingId), { deviceId: null, isUsed: false }); 
+                alert("تم فك ربط الجهاز بنجاح"); 
+                document.getElementById('deviceStatus').innerText = "غير مرتبط بجهاز ⚪";
+                document.getElementById('deviceStatus').style.color = "var(--text-muted)";
+            } catch(e) { alert("حدث خطأ أثناء العملية"); }
         };
 
         window.deleteCodeData = async () => {
@@ -521,3 +557,4 @@
     </script>
 </body>
 </html>
+
